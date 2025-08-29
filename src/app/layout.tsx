@@ -10,8 +10,14 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
-  title: "Articles - Blog Genzel",
+  title: {
+    default: "Articles - Blog Genzel",
+    template: "%s | Blog Genzel",
+  },
   description: "Your daily dose of design insights!",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -22,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${archivo.variable} antialiased`}>
+        {/* <AuthProvider><AuthProvider/>  */}
         {children}
       </body>
     </html>

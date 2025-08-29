@@ -5,7 +5,7 @@ export type Article = {
   id: string;
   title: string;
   content: string;
-  imgae?: string;
+  image?: string;
   userId: string;
   categoryId: string;
   createdAt: string;

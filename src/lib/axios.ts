@@ -7,7 +7,7 @@ const api = axios.create({
   },
 });
 
-// Interceptor untuk attach token kalau ada
+// Interceptor untuk attach token
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("token");
@@ -23,9 +23,24 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Clear auth data
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
-        window.location.href = "/login";
+      }
+
+      // Redirect ke login dengan pengecekan lebih robust
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname !== "/login" &&
+        !window.location.pathname.includes("/login")
+      ) {
+        // Gunakan router push jika tersedia, fallback ke window.location
+        if (window.history && window.history.pushState) {
+          window.history.pushState(null, "", "/login");
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        } else {
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);

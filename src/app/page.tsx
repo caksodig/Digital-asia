@@ -68,7 +68,7 @@ export default async function HomePage() {
                 slug={article.id}
                 title={article.title}
                 excerpt={article.content.slice(0, 100) + "..."}
-                image="/placeholder.jpg" // backend belum ada field image
+                image={article.image || "/placeholder.svg"}
                 date={article.createdAt}
                 tags={[article.category.name]}
               />

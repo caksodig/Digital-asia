@@ -18,9 +18,11 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 
 import { RegisterSchema, RegisterInput } from "@/lib/validation/auth";
+import api from "@/lib/axios"; // Added missing import
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false); // Added loading state
   const router = useRouter();
 
   const {
@@ -32,9 +34,37 @@ export default function RegisterPage() {
     resolver: zodResolver(RegisterSchema),
   });
 
-  const onSubmit = (data: RegisterInput) => {
-    console.log("Register attempt:", data);
-    router.push("/login");
+  const onSubmit = async (data: RegisterInput) => {
+    try {
+      setLoading(true);
+
+      console.log("Register attempt:", data);
+      console.log("API Base URL:", process.env.NEXT_PUBLIC_API_URL);
+
+      // API call to register endpoint
+      const res = await api.post("/auth/register", data);
+      console.log("REGISTER RESPONSE:", res.data);
+
+      // Show success message
+      alert("Registration successful! Please login with your credentials.");
+
+      // Redirect to login page
+      router.push("/login");
+    } catch (err: any) {
+      console.error("Register error details:", err);
+      console.error("Response data:", err.response?.data);
+      console.error("Status code:", err.response?.status);
+
+      // Better error handling
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.response?.data?.details ||
+        "Registration failed. Please try again.";
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,6 +96,7 @@ export default function RegisterPage() {
                 id="username"
                 {...register("username")}
                 placeholder="Input username"
+                disabled={loading} // Disable during loading
               />
               {errors.username && (
                 <p className="text-xs text-red-500">
@@ -89,11 +120,13 @@ export default function RegisterPage() {
                   {...register("password")}
                   placeholder="Input password"
                   className="pr-10"
+                  disabled={loading} // Disable during loading
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  disabled={loading} // Disable during loading
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -121,6 +154,7 @@ export default function RegisterPage() {
                 onValueChange={(value) =>
                   setValue("role", value as "User" | "Admin")
                 }
+                disabled={loading} // Disable during loading
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Role" />
@@ -138,8 +172,9 @@ export default function RegisterPage() {
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={loading} // Disable during loading
             >
-              Register
+              {loading ? "Registering..." : "Register"}
             </Button>
           </form>
 

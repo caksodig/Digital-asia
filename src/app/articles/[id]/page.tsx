@@ -12,7 +12,7 @@ interface ArticlePageProps {
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const { id } = await params;
+  const { id } = params;
 
   let article;
   try {
@@ -49,10 +49,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {/* Featured Image */}
             <div className="aspect-video relative mb-8 rounded-lg overflow-hidden">
               <Image
-                src={"/placeholder.svg"}
+                src={article.image || "/placeholder.svg"}
                 alt={article.title}
                 fill
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 85vw"
               />
             </div>
 
@@ -80,7 +81,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     slug={a.id}
                     title={a.title}
                     excerpt={a.content.slice(0, 100) + "..."}
-                    image={"https://via.placeholder.com/800x400"}
+                    image={a.image || "/placeholder.svg"}
                     date={a.createdAt}
                     tags={[a.category.name]}
                   />
