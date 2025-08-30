@@ -11,14 +11,13 @@ type AuthState = {
   token: string | null;
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean; // Tambahan untuk loading state
+  isLoading: boolean;
   login: (username: string, password: string) => Promise<User>;
   logout: () => void;
   fetchProfile: () => Promise<User>;
   restoreSession: () => Promise<void>;
 };
 
-// Helper untuk safe access ke localStorage
 const getStoredToken = () => {
   if (typeof window !== "undefined") {
     return localStorage.getItem("token");
@@ -59,27 +58,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       );
 
-      // Extract token dari response
       const token = response.data.token || response.data.access_token;
       if (!token) throw new Error("Token not found in response");
 
-      // Set token ke localStorage dan state secara bersamaan
       setStoredToken(token);
       set({ token });
 
-      // Wait sedikit untuk memastikan interceptor menggunakan token baru
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      // Fetch profile menggunakan token yang baru di-set
       const profileResponse = await api.get("/auth/profile");
       const user: User = profileResponse.data;
 
-      // Update state dengan user data
       set({ user, isAuthenticated: true, isLoading: false });
 
       return user;
     } catch (error: any) {
-      // Jika gagal, clear semua state dan storage
       setStoredToken(null);
       set({
         token: null,
@@ -119,7 +112,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user, isAuthenticated: true });
       return user;
     } catch (error) {
-      // Jika gagal fetch profile, clear semua state
       setStoredToken(null);
       set({ token: null, user: null, isAuthenticated: false });
       throw error;
@@ -136,10 +128,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
 
     try {
-      // Set token ke state dulu
       set({ token });
 
-      // Coba fetch profile dengan token yang ada
       const response = await api.get("/auth/profile");
       const user: User = response.data;
 
@@ -150,7 +140,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
-      // Jika gagal, clear storage dan state
       setStoredToken(null);
       set({
         token: null,
