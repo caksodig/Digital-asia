@@ -34,7 +34,6 @@ api.interceptors.response.use(
         window.location.pathname !== "/login" &&
         !window.location.pathname.includes("/login")
       ) {
-        // Gunakan router push jika tersedia, fallback ke window.location
         if (window.history && window.history.pushState) {
           window.history.pushState(null, "", "/login");
           window.dispatchEvent(new PopStateEvent("popstate"));

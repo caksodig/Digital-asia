@@ -5,3 +5,8 @@ export type Category = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type ApiError = {
+  message: string;
+  statusCode?: number;
+};

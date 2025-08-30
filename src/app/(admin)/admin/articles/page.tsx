@@ -57,7 +57,6 @@ export default function AdminArticlesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const articlesPerPage = 5;
 
-  /** 🔹 Fetch categories */
   const fetchCategories = async () => {
     setLoadingCategories(true);
     try {
@@ -73,7 +72,6 @@ export default function AdminArticlesPage() {
     }
   };
 
-  /** 🔹 Fetch articles berdasarkan filter */
   const fetchArticles = async () => {
     setLoading(true);
     try {
@@ -94,7 +92,6 @@ export default function AdminArticlesPage() {
     } catch (err: any) {
       console.error("Failed to fetch articles:", err);
 
-      // Handle different error types
       if (err.response?.status === 401) {
         toast.error("Session expired, silakan login kembali");
       } else if (err.response?.status === 403) {
@@ -105,7 +102,6 @@ export default function AdminArticlesPage() {
         toast.error("Gagal mengambil artikel");
       }
 
-      // Reset articles if error
       setArticles([]);
       setTotalPages(1);
       setTotalArticles(0);
@@ -114,29 +110,27 @@ export default function AdminArticlesPage() {
     }
   };
 
-  /** 🔹 Handle filter change */
   const handleFilterChange = (
     type: "category" | "search" | "page",
     value: any
   ) => {
     if (type === "category") {
       setSelectedCategory(value);
-      setCurrentPage(1); // reset page kalau ganti kategori
+      setCurrentPage(1);
     } else if (type === "search") {
       setSearchTerm(value);
-      setCurrentPage(1); // reset page kalau cari judul
+      setCurrentPage(1);
     } else if (type === "page") {
       setCurrentPage(value);
     }
   };
 
-  // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (currentPage === 1) {
         fetchArticles();
       } else {
-        setCurrentPage(1); // This will trigger fetchArticles via the other useEffect
+        setCurrentPage(1);
       }
     }, 300);
 
@@ -157,7 +151,6 @@ export default function AdminArticlesPage() {
       await api.delete(`/articles/${id}`);
       toast.success("Artikel berhasil dihapus");
 
-      // Refresh articles after delete
       await fetchArticles();
     } catch (err: any) {
       console.error("Failed to delete article:", err);

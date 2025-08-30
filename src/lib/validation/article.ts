@@ -7,7 +7,6 @@ export const ArticleSchema = z.object({
   categoryId: z.string().uuid("CategoryId harus berupa UUID"),
 });
 
-// Type inference
 export type ArticleInput = z.infer<typeof ArticleSchema>;
 
 export const CreateArticleSchema = z.object({
@@ -33,7 +32,6 @@ export const UpdateArticleSchema = CreateArticleSchema.partial();
 export type CreateArticleInput = z.infer<typeof CreateArticleSchema>;
 export type UpdateArticleInput = z.infer<typeof UpdateArticleSchema>;
 
-// Client-side validation for form
 export interface ArticleFormData {
   title: string;
   content: string;

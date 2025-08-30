@@ -1,9 +1,10 @@
 import { z } from "zod";
 
-// Schema untuk create/update category
-export const CategorySchema = z.object({
-  name: z.string().min(3, "Nama kategori minimal 3 karakter"),
+export const categorySchema = z.object({
+  name: z
+    .string()
+    .min(3, "Nama kategori minimal 3 karakter")
+    .max(50, "Nama kategori maksimal 50 karakter"),
 });
 
-// Type inference
-export type CategoryInput = z.infer<typeof CategorySchema>;
+export type CategoryFormData = z.infer<typeof categorySchema>;

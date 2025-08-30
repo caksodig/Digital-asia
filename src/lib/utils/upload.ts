@@ -23,7 +23,6 @@ export const uploadFile = async (
   } = options;
 
   try {
-    // Validate file type
     if (!allowedTypes.includes(file.type)) {
       return {
         success: false,
@@ -33,7 +32,6 @@ export const uploadFile = async (
       };
     }
 
-    // Validate file size
     if (file.size > maxSize) {
       const maxSizeMB = Math.round(maxSize / (1024 * 1024));
       return {
@@ -41,8 +39,6 @@ export const uploadFile = async (
         error: `File size too large. Maximum size: ${maxSizeMB}MB`,
       };
     }
-
-    // Create form data - use "image" field name as per API docs
     const formData = new FormData();
     formData.append("image", file);
 
@@ -61,7 +57,6 @@ export const uploadFile = async (
 
     console.log("Upload response:", response.data);
 
-    // FIX: Based on API docs, response should have "imageUrl" field
     const imageUrl = response.data?.imageUrl;
 
     if (!imageUrl) {
@@ -100,7 +95,6 @@ export const uploadFile = async (
   }
 };
 
-// Utility untuk compress image sebelum upload (optional)
 export const compressImage = (
   file: File,
   maxWidth = 1200,

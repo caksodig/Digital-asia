@@ -58,7 +58,6 @@ export default function CreateArticlePage() {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Fetch categories on component mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -66,9 +65,8 @@ export default function CreateArticlePage() {
           params: { page: 1, limit: 50 },
         });
 
-        console.log("Categories response:", response.data); // Debug log
+        console.log("Categories response:", response.data);
 
-        // Filter dan validate categories
         const validCategories = (response.data.data || []).filter(
           (cat: any) =>
             cat &&
@@ -101,13 +99,11 @@ export default function CreateArticlePage() {
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         toast.error("File harus berupa gambar (JPG, PNG)");
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error("Ukuran file maksimal 5MB");
         return;
@@ -199,7 +195,6 @@ export default function CreateArticlePage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // FIX: Use the utility function instead of inline implementation
   const uploadThumbnail = async (file: File): Promise<string | null> => {
     const result = await uploadFile(file);
 
@@ -221,7 +216,6 @@ export default function CreateArticlePage() {
     try {
       let thumbnailUrl = null;
 
-      // Upload thumbnail if exists
       if (formData.thumbnail) {
         try {
           console.log("Starting thumbnail upload...");
@@ -235,7 +229,6 @@ export default function CreateArticlePage() {
         }
       }
 
-      // Create article data - FIX: Use proper typing
       const articleData: CreateArticleData = {
         title: formData.title.trim(),
         content: formData.content.trim(),
@@ -243,7 +236,6 @@ export default function CreateArticlePage() {
       };
       console.log("Submitting article data:", articleData);
 
-      // Submit article
       const response = await api.post("/articles", articleData, {
         headers: {
           "Content-Type": "application/json",
@@ -253,7 +245,6 @@ export default function CreateArticlePage() {
       console.log("Article created successfully:", response.data);
       toast.success("Artikel berhasil dibuat! 🎉");
 
-      // Redirect to article list after short delay
       setTimeout(() => {
         router.push("/admin/articles");
       }, 1500);
@@ -266,7 +257,6 @@ export default function CreateArticlePage() {
         const errorMessage = error.response.data?.message || "Data tidak valid";
         toast.error(errorMessage);
 
-        // FIX: Handle field-specific errors if provided by API
         if (error.response.data?.errors) {
           setErrors(error.response.data.errors);
         }
@@ -290,8 +280,6 @@ export default function CreateArticlePage() {
       toast.error("Judul dan konten diperlukan untuk preview");
       return;
     }
-
-    // You can implement preview functionality here
     toast.info("Preview functionality coming soon!");
   };
 
