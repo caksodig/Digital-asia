@@ -1,22 +1,22 @@
 "use client";
 
-import { Controller, Control } from "react-hook-form";
+import { Controller, Control, FieldValues, Path } from "react-hook-form";
 
-type FormFieldProps = {
-  name: string;
-  control: Control<any>;
+type FormFieldProps<T extends FieldValues> = {
+  name: Path<T>;
+  control: Control<T>;
   label: string;
-  render: (field: any) => React.ReactNode;
+  render: (field: any) => React.ReactElement;
   error?: string;
 };
 
-export function FormField({
+export function FormField<T extends FieldValues>({
   name,
   control,
   label,
   render,
   error,
-}: FormFieldProps) {
+}: FormFieldProps<T>) {
   return (
     <div className="flex flex-col space-y-1">
       <label className="text-sm font-medium">{label}</label>

@@ -55,7 +55,7 @@ export default function AdminArticlesPage() {
   const [loading, setLoading] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const articlesPerPage = 5;
+  const articlesPerPage = 9;
 
   const fetchCategories = async () => {
     setLoadingCategories(true);
