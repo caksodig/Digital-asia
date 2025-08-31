@@ -1,4 +1,6 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
@@ -14,8 +16,33 @@ import {
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchArticles } from "@/lib/article";
 
-export default async function HomePage() {
-  const { data: articles, total } = await fetchArticles({ page: 1, limit: 9 });
+export default function HomePage() {
+  const [articles, setArticles] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  const loadArticles = async () => {
+    setLoading(true);
+    try {
+      const res = await fetchArticles({
+        page,
+        limit: 9,
+        search: search || undefined,
+        categoryId: category !== "all" ? category : undefined,
+      });
+      setArticles(res.data);
+      setTotal(res.total);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadArticles();
+  }, [page, search, category]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -34,7 +61,13 @@ export default async function HomePage() {
 
           {/* Search and Filter */}
           <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
-            <Select>
+            <Select
+              value={category}
+              onValueChange={(val) => {
+                setCategory(val);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="bg-white text-gray-900">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -49,6 +82,11 @@ export default async function HomePage() {
               <Input
                 placeholder="Search articles..."
                 className="pl-10 bg-white text-gray-900"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
               />
             </div>
           </div>
@@ -62,36 +100,46 @@ export default async function HomePage() {
             Showing : {articles.length} of {total} articles
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {articles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                slug={article.id}
-                title={article.title}
-                excerpt={article.content.slice(0, 100) + "..."}
-                image={article.image || "/placeholder.svg"}
-                date={article.createdAt}
-                tags={[article.category.name]}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <p className="text-center text-gray-500">Loading...</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {articles.map((article) => (
+                <ArticleCard
+                  key={article.id}
+                  slug={article.id}
+                  title={article.title}
+                  excerpt={article.content.slice(0, 100) + "..."}
+                  image={article.image || "/placeholder.svg"}
+                  date={article.createdAt}
+                  tags={[article.category?.name]}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Pagination */}
           <div className="flex items-center justify-center gap-4">
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1 || loading}
+            >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Previous
             </Button>
-            <div className="flex gap-2">
-              <Button variant="default" size="sm">
-                1
-              </Button>
-              <Button variant="outline" size="sm">
-                2
-              </Button>
-              <span className="px-2 py-1">...</span>
-            </div>
-            <Button variant="outline" size="sm">
+
+            <Button variant="default" size="sm">
+              {page}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={articles.length < 9 || loading}
+            >
               Next
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
