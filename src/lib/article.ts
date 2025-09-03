@@ -25,6 +25,5 @@ export async function fetchRelatedArticles(
   const res = await api.get("/articles", {
     params: { categoryId, limit: 3 },
   });
-  // filter artikel sekarang supaya tidak muncul di related
   return res.data.data.filter((a: Article) => a.id !== excludeId).slice(0, 3);
 }

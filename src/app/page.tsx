@@ -33,6 +33,7 @@ export default function HomePage() {
         search: search || undefined,
         categoryId: category !== "all" ? category : undefined,
       });
+
       setArticles(res.data);
       setTotal(res.total);
     } finally {
@@ -42,6 +43,14 @@ export default function HomePage() {
 
   useEffect(() => {
     loadArticles();
+  }, [page, search, category]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadArticles();
+    }, 10000); // 10 detik
+
+    return () => clearInterval(interval);
   }, [page, search, category]);
 
   return (
