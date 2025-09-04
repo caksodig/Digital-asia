@@ -45,14 +45,6 @@ export default function HomePage() {
     loadArticles();
   }, [page, search, category]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadArticles();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [page, search, category]);
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
