@@ -1,8 +1,7 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,73 +22,148 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import api from "@/lib/axios";
+import { toast } from "sonner";
+import { uploadFile } from "@/lib/utils/upload";
 
-const categories = [
-  "Technology",
-  "Design",
-  "Development",
-  "Business",
-  "Marketing",
-];
+interface Category {
+  id: string;
+  name: string;
+}
 
-// Mock article data
-const mockArticles = [
-  {
-    id: 1,
-    title: "Cybersecurity Essentials Every Developer Should Know",
-    category: "Technology",
-    content:
-      "In the ever-evolving world of digital product design, collaboration between designers and developers has always been a crucial—yet often challenging—part of the process. In April 2025, Figma introduced Dev Mode, a powerful new feature aimed at streamlining that collaboration more than ever before.",
-    thumbnail: "/developer-working-on-cybersecurity-code.png",
-  },
-  {
-    id: 2,
-    title: "The Future of Work: Remote-First Teams and Digital Tools",
-    category: "Technology",
-    content:
-      "Remote work has transformed how teams collaborate and build products. This comprehensive guide explores the tools and strategies that make remote-first teams successful.",
-    thumbnail: "/remote-team-collaboration-digital-workspace.png",
-  },
-];
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  categoryId: string;
+  imageUrl?: string;
+  category?: {
+    id: string;
+    name: string;
+  };
+}
+
+interface UpdateArticleData {
+  title: string;
+  content: string;
+  categoryId: string;
+  imageUrl?: string;
+}
 
 export default function EditArticlePage() {
+  const router = useRouter();
   const params = useParams();
-  const articleId = Number.parseInt(params.id as string);
+  const articleId = params.id as string;
 
   const [formData, setFormData] = useState({
     title: "",
-    category: "",
+    categoryId: "",
     content: "",
     thumbnail: null as File | null,
   });
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const [wordCount, setWordCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
 
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [wordCount, setWordCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Fetch categories
   useEffect(() => {
-    // Load article data
-    const article = mockArticles.find((a) => a.id === articleId);
-    if (article) {
-      setFormData({
-        title: article.title,
-        category: article.category,
-        content: article.content,
-        thumbnail: null,
-      });
-      setThumbnailPreview(article.thumbnail);
-      setWordCount(article.content.trim().split(/\s+/).filter(Boolean).length);
-    }
-    setIsLoading(false);
-  }, [articleId]);
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get("/categories", {
+          params: { page: 1, limit: 50 },
+        });
+
+        const validCategories = (response.data.data || []).filter(
+          (cat: any) =>
+            cat &&
+            cat.id &&
+            cat.name &&
+            typeof cat.id === "string" &&
+            cat.id.trim() !== ""
+        );
+
+        setCategories(validCategories);
+      } catch (error: any) {
+        console.error("Failed to fetch categories:", error);
+        toast.error("Gagal mengambil daftar kategori");
+        setCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Fetch article data
+  useEffect(() => {
+    const fetchArticle = async () => {
+      if (!articleId) return;
+
+      try {
+        setIsLoadingData(true);
+        const response = await api.get(`/articles/${articleId}`);
+        const article: Article = response.data.data || response.data;
+
+        console.log("Fetched article:", article);
+
+        setFormData({
+          title: article.title || "",
+          categoryId: article.categoryId || "",
+          content: article.content || "",
+          thumbnail: null,
+        });
+
+        if (article.imageUrl) {
+          setCurrentImageUrl(article.imageUrl);
+          setThumbnailPreview(article.imageUrl);
+        }
+
+        setWordCount(
+          (article.content || "").trim().split(/\s+/).filter(Boolean).length
+        );
+      } catch (error: any) {
+        console.error("Failed to fetch article:", error);
+        if (error.response?.status === 404) {
+          toast.error("Artikel tidak ditemukan");
+          router.push("/admin/articles");
+        } else {
+          toast.error("Gagal mengambil data artikel");
+        }
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchArticle();
+  }, [articleId, router]);
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("File harus berupa gambar (JPG, PNG)");
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Ukuran file maksimal 5MB");
+        return;
+      }
+
       setFormData({ ...formData, thumbnail: file });
+      setErrors({ ...errors, thumbnail: "" });
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setThumbnailPreview(e.target?.result as string);
@@ -102,6 +176,24 @@ export default function EditArticlePage() {
     const content = e.target.value;
     setFormData({ ...formData, content });
     setWordCount(content.trim().split(/\s+/).filter(Boolean).length);
+    if (content.trim()) {
+      setErrors({ ...errors, content: "" });
+    }
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const title = e.target.value;
+    setFormData({ ...formData, title });
+    if (title.trim()) {
+      setErrors({ ...errors, title: "" });
+    }
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    setFormData({ ...formData, categoryId });
+    if (categoryId) {
+      setErrors({ ...errors, categoryId: "" });
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -112,7 +204,14 @@ export default function EditArticlePage() {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith("image/")) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Ukuran file maksimal 5MB");
+        return;
+      }
+
       setFormData({ ...formData, thumbnail: file });
+      setErrors({ ...errors, thumbnail: "" });
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setThumbnailPreview(e.target?.result as string);
@@ -121,19 +220,138 @@ export default function EditArticlePage() {
     }
   };
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log("Updated article data:", formData);
-    // Redirect to articles list or show success message
+  const removeThumbnail = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setThumbnailPreview(null);
+    setCurrentImageUrl(null);
+    setFormData({ ...formData, thumbnail: null });
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.title.trim()) {
+      newErrors.title = "Judul artikel wajib diisi";
+    }
+
+    if (!formData.categoryId) {
+      newErrors.categoryId = "Kategori wajib dipilih";
+    }
+
+    if (!formData.content.trim()) {
+      newErrors.content = "Konten artikel wajib diisi";
+    } else if (formData.content.trim().length < 50) {
+      newErrors.content = "Konten minimal 50 karakter";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const uploadThumbnail = async (file: File): Promise<string | null> => {
+    const result = await uploadFile(file);
+
+    if (!result.success) {
+      throw new Error(result.error || "Upload failed");
+    }
+
+    return result.url || null;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      toast.error("Mohon lengkapi semua field yang wajib diisi");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      let imageUrl = currentImageUrl;
+
+      if (formData.thumbnail) {
+        try {
+          console.log("Starting thumbnail upload...");
+          imageUrl = await uploadThumbnail(formData.thumbnail);
+          console.log("Thumbnail uploaded successfully:", imageUrl);
+        } catch (error: any) {
+          console.error("Thumbnail upload error:", error);
+          toast.error(`Gagal mengupload thumbnail: ${error.message}`);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      const articleData: UpdateArticleData = {
+        title: formData.title.trim(),
+        content: formData.content.trim(),
+        categoryId: formData.categoryId,
+        ...(imageUrl && { imageUrl }),
+      };
+
+      console.log("Updating article data:", articleData);
+
+      const response = await api.put(`/articles/${articleId}`, articleData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Article updated successfully:", response.data);
+      toast.success("Artikel berhasil diupdate! 🎉");
+
+      setTimeout(() => {
+        router.push("/admin/articles");
+      }, 1500);
+    } catch (error: any) {
+      console.error("Update article failed:", error);
+      console.error("Article update error response:", error.response?.data);
+      console.error("Article update error status:", error.response?.status);
+
+      if (error.response?.status === 400) {
+        const errorMessage = error.response.data?.message || "Data tidak valid";
+        toast.error(errorMessage);
+
+        if (error.response.data?.errors) {
+          setErrors(error.response.data.errors);
+        }
+      } else if (error.response?.status === 401) {
+        toast.error("Session expired, silakan login kembali");
+        router.push("/login");
+      } else if (error.response?.status === 403) {
+        toast.error("Anda tidak memiliki akses untuk mengupdate artikel");
+      } else if (error.response?.status === 404) {
+        toast.error("Artikel tidak ditemukan");
+        router.push("/admin/articles");
+      } else if (error.response?.status === 422) {
+        toast.error("Data tidak valid, periksa kembali form Anda");
+      } else {
+        toast.error("Gagal mengupdate artikel, silakan coba lagi");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handlePreview = () => {
-    // Handle preview functionality
-    console.log("Preview article:", formData);
+    if (!formData.title.trim() || !formData.content.trim()) {
+      toast.error("Judul dan konten diperlukan untuk preview");
+      return;
+    }
+    toast.info("Preview functionality coming soon!");
   };
 
-  if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+  if (isLoadingData) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span>Loading article data...</span>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -141,27 +359,39 @@ export default function EditArticlePage() {
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Link href="/admin/articles">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" disabled={isLoading}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Edit Article
+            Back to Articles
           </Button>
         </Link>
+        <h1 className="text-2xl font-semibold">Edit Article</h1>
       </div>
 
       <div className="max-w-4xl">
         {/* Thumbnail Upload */}
         <div className="mb-6">
-          <Label className="text-base font-medium mb-3 block">Thumbnails</Label>
+          <Label className="text-base font-medium mb-3 block">
+            Thumbnail
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              (Optional)
+            </span>
+          </Label>
           <div
-            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+              errors.thumbnail
+                ? "border-red-300 bg-red-50"
+                : "border-gray-300 hover:border-gray-400"
+            }`}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            onClick={() => document.getElementById("thumbnail-upload")?.click()}
+            onClick={() =>
+              !isLoading && document.getElementById("thumbnail-upload")?.click()
+            }
           >
             {thumbnailPreview ? (
               <div className="relative">
                 <Image
-                  src={thumbnailPreview || "/placeholder.svg"}
+                  src={thumbnailPreview}
                   alt="Thumbnail preview"
                   width={200}
                   height={120}
@@ -170,12 +400,9 @@ export default function EditArticlePage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="mt-2 bg-transparent"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setThumbnailPreview(null);
-                    setFormData({ ...formData, thumbnail: null });
-                  }}
+                  className="mt-2"
+                  onClick={removeThumbnail}
+                  disabled={isLoading}
                 >
                   Remove
                 </Button>
@@ -183,62 +410,91 @@ export default function EditArticlePage() {
             ) : (
               <div>
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2">Click to select files</p>
+                <p className="text-gray-600 mb-2">
+                  Click to select files or drag and drop
+                </p>
                 <p className="text-sm text-gray-500">
-                  Support File Type : jpg or png
+                  Support File Type: JPG, PNG (Max 5MB)
                 </p>
               </div>
             )}
             <input
               id="thumbnail-upload"
               type="file"
-              accept="image/jpeg,image/png"
+              accept="image/jpeg,image/png,image/jpg"
               onChange={handleThumbnailChange}
               className="hidden"
+              disabled={isLoading}
             />
           </div>
+          {errors.thumbnail && (
+            <p className="text-sm text-red-500 mt-1">{errors.thumbnail}</p>
+          )}
         </div>
 
         {/* Title */}
         <div className="mb-6">
           <Label htmlFor="title" className="text-base font-medium mb-3 block">
-            Title
+            Title <span className="text-red-500">*</span>
           </Label>
           <Input
             id="title"
-            placeholder="Input title"
+            placeholder="Enter article title"
             value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            className="text-base"
+            onChange={handleTitleChange}
+            className={`text-base ${errors.title ? "border-red-300" : ""}`}
+            disabled={isLoading}
           />
+          {errors.title && (
+            <p className="text-sm text-red-500 mt-1">{errors.title}</p>
+          )}
         </div>
 
         {/* Category */}
         <div className="mb-6">
-          <Label className="text-base font-medium mb-3 block">Category</Label>
+          <Label className="text-base font-medium mb-3 block">
+            Category <span className="text-red-500">*</span>
+          </Label>
           <Select
-            value={formData.category}
-            onValueChange={(value) =>
-              setFormData({ ...formData, category: value })
-            }
+            value={formData.categoryId}
+            onValueChange={handleCategoryChange}
+            disabled={isLoading || loadingCategories || categories.length === 0}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
+            <SelectTrigger
+              className={errors.categoryId ? "border-red-300" : ""}
+            >
+              <SelectValue
+                placeholder={
+                  loadingCategories
+                    ? "Loading categories..."
+                    : categories.length === 0
+                    ? "No categories available"
+                    : "Select category"
+                }
+              />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
+              {categories
+                .filter((category) => category.id && category.name)
+                .map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              {categories.length === 0 && !loadingCategories && (
+                <SelectItem value="no-categories" disabled>
+                  No categories available
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
+          {errors.categoryId && (
+            <p className="text-sm text-red-500 mt-1">{errors.categoryId}</p>
+          )}
           <p className="text-sm text-gray-500 mt-2">
             The existing category list can be seen in the{" "}
             <Link
-              href="/admin/category"
+              href="/admin/categories"
               className="text-blue-600 hover:underline"
             >
               category
@@ -249,58 +505,86 @@ export default function EditArticlePage() {
 
         {/* Rich Text Editor */}
         <div className="mb-6">
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <Label className="text-base font-medium mb-3 block">
+            Content <span className="text-red-500">*</span>
+          </Label>
+          <div
+            className={`border rounded-lg overflow-hidden ${
+              errors.content ? "border-red-300" : "border-gray-200"
+            }`}
+          >
             {/* Toolbar */}
             <div className="flex items-center gap-2 p-3 bg-gray-50 border-b border-gray-200">
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button variant="ghost" size="sm" className="p-2" disabled>
                 <Bold className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button variant="ghost" size="sm" className="p-2" disabled>
                 <Italic className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button variant="ghost" size="sm" className="p-2" disabled>
                 <ImageIcon className="w-4 h-4" />
               </Button>
               <div className="w-px h-6 bg-gray-300 mx-2" />
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button variant="ghost" size="sm" className="p-2" disabled>
                 <AlignLeft className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button variant="ghost" size="sm" className="p-2" disabled>
                 <AlignCenter className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button variant="ghost" size="sm" className="p-2" disabled>
                 <AlignRight className="w-4 h-4" />
               </Button>
+              <span className="text-xs text-gray-500 ml-auto">
+                Rich text features coming soon
+              </span>
             </div>
 
             {/* Content Area */}
             <Textarea
-              placeholder="Type a content..."
+              placeholder="Write your article content here..."
               value={formData.content}
               onChange={handleContentChange}
               className="min-h-96 border-0 resize-none focus-visible:ring-0 text-base"
+              disabled={isLoading}
             />
           </div>
 
-          {/* Word Count */}
+          {/* Word Count and Error */}
           <div className="flex justify-between items-center mt-2">
             <span className="text-sm text-gray-500">{wordCount} Words</span>
+            {errors.content && (
+              <span className="text-sm text-red-500">{errors.content}</span>
+            )}
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3">
           <Link href="/admin/articles">
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={isLoading}>
+              Cancel
+            </Button>
           </Link>
-          <Button variant="outline" onClick={handlePreview}>
+          <Button
+            variant="outline"
+            onClick={handlePreview}
+            disabled={isLoading}
+          >
             Preview
           </Button>
           <Button
             onClick={handleSubmit}
             className="bg-blue-600 hover:bg-blue-700"
+            disabled={isLoading}
           >
-            Update
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              "Update Article"
+            )}
           </Button>
         </div>
       </div>

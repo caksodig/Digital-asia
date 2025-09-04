@@ -48,7 +48,7 @@ export default function HomePage() {
   useEffect(() => {
     const interval = setInterval(() => {
       loadArticles();
-    }, 10000); // 10 detik
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [page, search, category]);
@@ -119,7 +119,7 @@ export default function HomePage() {
                   slug={article.id}
                   title={article.title}
                   excerpt={article.content.slice(0, 100) + "..."}
-                  image={article.image || "/placeholder.svg"}
+                  imageUrl={article.imageUrl || "/placeholder.svg"}
                   date={article.createdAt}
                   tags={[article.category?.name]}
                 />

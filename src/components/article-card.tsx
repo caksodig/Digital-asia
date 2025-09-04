@@ -7,7 +7,7 @@ interface ArticleCardProps {
   slug: string;
   title: string;
   excerpt: string;
-  image: string;
+  imageUrl?: string;
   date: string;
   tags: string[];
 }
@@ -16,7 +16,7 @@ export function ArticleCard({
   slug,
   title,
   excerpt,
-  image,
+  imageUrl,
   date,
   tags,
 }: ArticleCardProps) {
@@ -25,7 +25,7 @@ export function ArticleCard({
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
         <div className="aspect-video relative">
           <Image
-            src={image || "/placeholder.svg"}
+            src={imageUrl || "/placeholder.svg"}
             alt={title}
             fill
             className="object-cover"

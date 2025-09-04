@@ -39,7 +39,7 @@ interface CreateArticleData {
   title: string;
   content: string;
   categoryId: string;
-  thumbnail?: string; // FIX: Add thumbnail field
+  imageUrl?: string;
 }
 
 export default function CreateArticlePage() {
@@ -214,13 +214,13 @@ export default function CreateArticlePage() {
     setIsLoading(true);
 
     try {
-      let thumbnailUrl = null;
+      let imageUrl = null;
 
       if (formData.thumbnail) {
         try {
           console.log("Starting thumbnail upload...");
-          thumbnailUrl = await uploadThumbnail(formData.thumbnail);
-          console.log("Thumbnail uploaded successfully:", thumbnailUrl);
+          imageUrl = await uploadThumbnail(formData.thumbnail);
+          console.log("Thumbnail uploaded successfully:", imageUrl);
         } catch (error: any) {
           console.error("Thumbnail upload error:", error);
           toast.error(`Gagal mengupload thumbnail: ${error.message}`);
@@ -233,6 +233,7 @@ export default function CreateArticlePage() {
         title: formData.title.trim(),
         content: formData.content.trim(),
         categoryId: formData.categoryId,
+        ...(imageUrl && { imageUrl }),
       };
       console.log("Submitting article data:", articleData);
 

@@ -31,7 +31,7 @@ import { toast } from "sonner";
 interface Article {
   id: string;
   title: string;
-  image?: string;
+  imageUrl?: string;
   createdAt: string;
   category?: {
     id: string;
@@ -254,7 +254,7 @@ export default function AdminArticlesPage() {
             >
               <div className="col-span-2">
                 <Image
-                  src={article.image || "/placeholder.svg"}
+                  src={article.imageUrl || "/placeholder.svg"}
                   alt={article.title}
                   width={60}
                   height={40}

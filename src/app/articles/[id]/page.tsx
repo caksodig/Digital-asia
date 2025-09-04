@@ -49,7 +49,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {/* Featured Image */}
             <div className="aspect-video relative mb-8 rounded-lg overflow-hidden">
               <Image
-                src={article.image || "/placeholder.svg"}
+                src={article.imageUrl || "/placeholder.svg"}
                 alt={article.title}
                 fill
                 className="object-cover"
@@ -81,7 +81,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     slug={a.id}
                     title={a.title}
                     excerpt={a.content.slice(0, 100) + "..."}
-                    image={a.image || "/placeholder.svg"}
+                    imageUrl={a.imageUrl || "/placeholder.svg"}
                     date={a.createdAt}
                     tags={[a.category.name]}
                   />
