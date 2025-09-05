@@ -15,14 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 
 import { RegisterSchema, RegisterInput } from "@/lib/validation/auth";
-import api from "@/lib/axios"; // Added missing import
-
+import api from "@/lib/axios";
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const {
@@ -41,7 +41,6 @@ export default function RegisterPage() {
       console.log("Register attempt:", data);
       console.log("API Base URL:", process.env.NEXT_PUBLIC_API_URL);
 
-      // API call to register endpoint
       const res = await api.post("/auth/register", data);
       console.log("REGISTER RESPONSE:", res.data);
 
@@ -55,7 +54,7 @@ export default function RegisterPage() {
       console.error("Response data:", err.response?.data);
       console.error("Status code:", err.response?.status);
 
-      // Better error handling
+      //  error handling
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -73,12 +72,7 @@ export default function RegisterPage() {
         <CardContent className="p-8">
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-blue-600 rounded-sm flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-full"></div>
-              </div>
-              <span className="text-xl font-semibold text-gray-900">
-                Logoipsum
-              </span>
+              <Image alt="Logo" width={134} height={24} src="/Frame.png" />
             </div>
           </div>
 
@@ -120,13 +114,13 @@ export default function RegisterPage() {
                   {...register("password")}
                   placeholder="Input password"
                   className="pr-10"
-                  disabled={loading} // Disable during loading
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  disabled={loading} // Disable during loading
+                  disabled={loading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -154,7 +148,7 @@ export default function RegisterPage() {
                 onValueChange={(value) =>
                   setValue("role", value as "User" | "Admin")
                 }
-                disabled={loading} // Disable during loading
+                disabled={loading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Role" />

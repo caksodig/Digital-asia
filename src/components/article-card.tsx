@@ -39,7 +39,7 @@ export function ArticleCard({
           </p>
           <div className="flex gap-2 flex-wrap">
             {tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
+              <Badge key={tag} className="text-xs bg-[#BFDBFE] text-blue-900">
                 {tag}
               </Badge>
             ))}

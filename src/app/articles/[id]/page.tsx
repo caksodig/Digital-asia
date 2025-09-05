@@ -64,7 +64,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             {/* Category as tag */}
             <div className="flex gap-2 mb-8">
-              <Badge variant="secondary">{article.category.name}</Badge>
+              <Badge className=" bg-[#BFDBFE] text-blue-900">
+                {article.category.name}
+              </Badge>
             </div>
           </div>
         </article>

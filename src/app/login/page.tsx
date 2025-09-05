@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/components/store/auth";
 import { LoginSchema, LoginInput } from "@/lib/validation/auth";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -113,10 +116,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Masuk</h1>
-          <p className="text-sm text-gray-600 mt-2">
-            Silakan masuk ke akun Anda
-          </p>
+          <Image
+            className="mx-auto"
+            alt="Logo"
+            width={134}
+            height={24}
+            src="/Frame.png"
+          />
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -124,7 +130,7 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700">
               Username
             </label>
-            <input
+            <Input
               type="text"
               {...register("username")}
               className={`mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -145,7 +151,7 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
-            <input
+            <Input
               type="password"
               {...register("password")}
               className={`mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -176,6 +182,14 @@ export default function LoginPage() {
               "Masuk"
             )}
           </button>
+          <div className="text-center text-sm text-gray-600">
+            <p>
+              Don’t have an account?
+              <Link href="/register" className="ml-1 font-medium">
+                <span className="text-blue-600">Register</span>
+              </Link>
+            </p>
+          </div>
         </form>
       </div>
     </div>
