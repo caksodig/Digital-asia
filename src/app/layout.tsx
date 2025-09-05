@@ -28,7 +28,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${archivo.variable} antialiased`}>
-        {/* <AuthProvider><AuthProvider/>  */}
         {children}
       </body>
     </html>

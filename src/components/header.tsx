@@ -13,6 +13,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import Image from "next/image";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -29,15 +30,12 @@ export function Header() {
     setIsLoading(true);
 
     try {
-      // Hapus data auth
       logout();
-
-      // Tampilkan toast sukses
       toast.success("Logout berhasil! 👋");
 
-      // Delay sedikit biar toast sempat muncul
+      // redirect cepat setelah 0.5 detik
       setTimeout(() => {
-        router.replace("/login");
+        router.replace("/");
       }, 500);
     } catch (error) {
       toast.error("Terjadi kesalahan saat logout");
@@ -48,12 +46,22 @@ export function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between p-6 bg-white border-b">
+    <header className="flex items-center justify-between p-6 md:bg-transparent bg-white">
       <Link href="/" className="flex items-center gap-2">
-        <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-          <div className="w-3 h-3 bg-white rounded-full"></div>
-        </div>
-        <span className="font-semibold text-lg">Logoipsum</span>
+        <Image
+          className="hidden md:block"
+          alt="Logo"
+          width={134}
+          height={24}
+          src="/Logo.png"
+        />
+        <Image
+          className="md:hidden block"
+          alt="Logo"
+          width={134}
+          height={24}
+          src="/Frame.png"
+        />
       </Link>
 
       <div className="flex items-center gap-4">

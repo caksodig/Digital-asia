@@ -85,7 +85,7 @@ export default function HomePage() {
       if (visibilityRef.current && !loading && !refreshing) {
         loadArticles(true);
       }
-    }, 30000); 
+    }, 30000);
 
     return () => {
       if (intervalRef.current) {
@@ -146,12 +146,17 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16">
+      <section
+        className="relative bg-cover bg-center text-white pb-16"
+        style={{
+          backgroundImage:
+            "linear-gradient(to bottom right, rgba(37, 99, 235, 0.8), rgba(29, 78, 216, 0.8)), url('/hero.jpg')",
+        }}
+      >
+        <Header />
         <div className="container mx-auto px-6 text-center">
-          <p className="text-blue-200 mb-4">Blog genzel</p>
+          <p className="text-blue-200 mb-4">Blog genzet</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
             The Journal : Design Resources, Interviews, and Industry News
           </h1>
@@ -287,7 +292,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Auto-refresh indicator */}
           {refreshing && (
             <div className="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin" />
